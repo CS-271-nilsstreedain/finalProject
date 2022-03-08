@@ -19,9 +19,9 @@ MODE_ENCRYPT = -1
 MODE_DECRYPT = -2
 
 .data
-	operand1   WORD    46
-	operand2   WORD    -20
-	dest       DWORD   -2
+	operand1   WORD    -32767
+	operand2   WORD    -32767
+	dest       DWORD   0
 	
 	decoyTest	BYTE		"decoy: ", 0
 	encryptTest	BYTE		"encrypt: ", 0
@@ -35,7 +35,7 @@ main PROC
 	call   compute
 	;; currently dest holds a value of +26
 	mov    eax, dest
-	;call   WriteInt   ; should display +26
+	call   WriteInt   ; should display +26
 
 	exit					; exit to operating system
 main ENDP
@@ -57,7 +57,7 @@ compute PROC
 
 	cmp		eax, MODE_DECRYPT
 	je		decrypt
-
+	
 	call	decoy
 	jmp		endCompute
 
@@ -71,17 +71,21 @@ callDecrypt:
 
 endCompute:
 	pop		ebp
-	ret		12
+	ret		8
 compute ENDP
 
 ; Description:				
-; Receives:					[ebp + 8]: , [ebp + 12]: , [ebp + 16]: 
+; Receives:					[ebp + 8]: Given Signed DWORD, [ebp + 12]: Opp1, [ebp + 14]: Opp2
 ; Returns:					
 ; Preconditions:			
-; Register changed:			
+; Register changed:			eax, ebx
 decoy PROC
-	mov		edx, OFFSET decoyTest
-	call	WriteString
+	movsx	eax,WORD PTR [ebp + 14]
+	movsx	ebx,WORD PTR [ebp + 12]
+	add		eax, ebx		; Find and add opp1 & opp2
+	
+	mov		ebx, [ebp + 8]
+	mov		[ebx], eax		; Store sum in given DWORD OFFSET
 
 	ret
 decoy ENDP
