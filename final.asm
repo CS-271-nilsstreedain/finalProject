@@ -19,23 +19,23 @@ MODE_ENCRYPT = -1
 MODE_DECRYPT = -2
 
 .data
-	operand1   WORD    -32767
-	operand2   WORD    -32767
-	dest       DWORD   0
+	myKey      BYTE   "efbcdghijklmnopqrstuvwxyza"
+	message    BYTE   "the contents of this message will be a mystery.",0
+	dest       DWORD   -1
 	
-	decoyTest	BYTE		"decoy: ", 0
 	encryptTest	BYTE		"encrypt: ", 0
 	decryptTest	BYTE		"deccrypt: ", 0
 
 .code
 main PROC
-	push   operand1
-	push   operand2
+	push   OFFSET myKey
+	push   OFFSET message
 	push   OFFSET dest
 	call   compute
-	;; currently dest holds a value of +26
-	mov    eax, dest
-	call   WriteInt   ; should display +26
+	;; message now contains the encrypted string
+	mov    edx, OFFSET message
+	call   WriteString
+	;; should display "uid bpoudout pg uijt ndttehd xjmm fd e nztudsz."
 
 	exit					; exit to operating system
 main ENDP
