@@ -74,10 +74,10 @@ endCompute:
 	ret		8
 compute ENDP
 
-; Description:				
+; Description:				Decoy procedure to add 2 16 bit opperands into a 32 bit address
 ; Receives:					[ebp + 8]: Given Signed DWORD, [ebp + 12]: Opp1, [ebp + 14]: Opp2
-; Returns:					
-; Preconditions:			
+; Returns:					DWORD sum of two WORDs
+; Preconditions:			valid DWORD OFFSET & opperands must be provided
 ; Register changed:			eax, ebx
 decoy PROC
 	movsx	eax,WORD PTR [ebp + 14]
