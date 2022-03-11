@@ -13,11 +13,6 @@ TITLE Final Project		(final.asm)
 ;							implement the requested behavior. Your code must be capable of encrypting and decrypting messages.
 
 INCLUDE Irvine32.inc
-
-; constants
-MODE_ENCRYPT = -1
-MODE_DECRYPT = -2
-
 .data
 	myKey      BYTE   "efbcdghijklmnopqrstuvwxyza"
 	message    BYTE   "the contents of this message will be a mystery.",0
@@ -52,10 +47,10 @@ compute PROC
 	mov		eax, [ebp + 8]
 	mov		eax, [eax]
 
-	cmp		eax, MODE_ENCRYPT
+	cmp		eax, -1
 	je		callEncrypt
 
-	cmp		eax, MODE_DECRYPT
+	cmp		eax, -2
 	je		decrypt
 	
 	call	decoy
@@ -90,15 +85,35 @@ decoy PROC
 	ret
 decoy ENDP
 
-; Description:				
-; Receives:					[ebp + 8]: , [ebp + 12]: , [ebp + 16]: 
-; Returns:					
-; Preconditions:			
-; Register changed:	
+; Description:				Encryption cypher mode to swap characters of a string with their
+;							correspoding characters in a given input key.
+; Receives:					[ebp + 8]: Mode, [ebp + 12]: Input string, [ebp + 16]: Key
+; Returns:					Encrypted string
+; Preconditions:			key and input string must be provided
+; Register changed:			eax, edx, esi, edi
 encrypt PROC
-	mov		edx, OFFSET encryptTest
-	call	WriteString
+	mov		esi, [ebp + 12]
+	mov		edi, esi
+	mov		edx, [ebp + 16]
 
+loopString:				; loop over each char in input
+	xor		eax, eax
+	lodsb
+	inc		edi			; inc when skip char (re-dec later when not skiping)
+	
+	cmp		al, 0		; if end of string, endLoop
+	je		endLoopString
+	cmp		al, 97		; if out of range from lower case chars, skip char
+	jl		loopString
+	cmp		al, 122
+	jg		loopString
+
+	dec		edi
+	mov		eax, [edx + eax - 97] ; replace char with char at index in key
+	stosb
+
+	jmp		loopString
+endLoopString:
 	ret
 encrypt ENDP
 
