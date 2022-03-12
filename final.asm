@@ -15,14 +15,12 @@ TITLE Final Project		(final.asm)
 INCLUDE Irvine32.inc
 .data
 	myKey      BYTE   "efbcdghijklmnopqrstuvwxyza"
-	message    BYTE   "the contents of this message will be a mystery.",0
-	dest       DWORD   -1
-	
-	encryptTest	BYTE		"encrypt: ", 0
-	decryptTest	BYTE		"deccrypt: ", 0
+	message    BYTE   "uid bpoudout pg uijt ndttehd xjmm fd e nztudsz.",0
+	dest       DWORD   -2
 
 .code
 main PROC
+	;; inside the MAIN procedure
 	push   OFFSET myKey
 	push   OFFSET message
 	push   OFFSET dest
@@ -31,8 +29,7 @@ main PROC
 	mov    edx, OFFSET message
 	call   WriteString
 	;; should display "uid bpoudout pg uijt ndttehd xjmm fd e nztudsz."
-
-	exit					; exit to operating system
+	exit
 main ENDP
 
 ; Description:				
@@ -43,30 +40,36 @@ main ENDP
 compute PROC
 	push	ebp
 	mov		ebp, esp
+	sub		esp, 28
+
+	mov		eax, [ebp + 16]
+	mov		edi, [ebp + 8]
+	mov		edi, [edi]		; get mode value
 	
-	mov		eax, [ebp + 8]
-	mov		eax, [eax]
-
-	cmp		eax, -1
+	cmp		edi, -2
+	je		callDecrypt		; if mode is -1 or -2 call correct procedure
+	cmp		edi, -1
 	je		callEncrypt
-
-	cmp		eax, -2
-	je		decrypt
 	
 	call	decoy
-	jmp		endCompute
-
-callEncrypt:
-	call	encrypt
-	jmp		endCompute
+	pop		ebp
+	ret		8				; otherwise decoy
 
 callDecrypt:
+	lea		ebx, [ebp - 26]
+	push	eax
+	push	ebx
 	call	decrypt
-	jmp		endCompute
+	mov		eax, ebx
 
-endCompute:
+callEncrypt:
+	push	eax
+	push	[ebp + 12]
+	call	encrypt
+
+	add		esp, 28
 	pop		ebp
-	ret		8
+	ret		12
 compute ENDP
 
 ; Description:				Decoy procedure to add 2 16 bit opperands into a 32 bit address
@@ -87,14 +90,17 @@ decoy ENDP
 
 ; Description:				Encryption cypher mode to swap characters of a string with their
 ;							correspoding characters in a given input key.
-; Receives:					[ebp + 8]: Mode, [ebp + 12]: Input string, [ebp + 16]: Key
+; Receives:					[ebp + 8]: Input string, [ebp + 12]: Key
 ; Returns:					Encrypted string
 ; Preconditions:			key and input string must be provided
-; Register changed:			eax, edx, esi, edi
+; Register changed:			eax, ebx, esi, edi
 encrypt PROC
-	mov		esi, [ebp + 12]
+	push	ebp
+	mov		ebp, esp
+	
+	mov		esi, [ebp + 8]
 	mov		edi, esi
-	mov		edx, [ebp + 16]
+	mov		ebx, [ebp + 12]
 
 loopString:				; loop over each char in input
 	xor		eax, eax
@@ -109,24 +115,53 @@ loopString:				; loop over each char in input
 	jg		loopString
 
 	dec		edi
-	mov		eax, [edx + eax - 97] ; replace char with char at index in key
+	mov		eax, [ebx + eax - 97] ; replace char with char at index in key
 	stosb
 
 	jmp		loopString
 endLoopString:
-	ret
+	pop		ebp
+	ret		8
 encrypt ENDP
 
 ; Description:				
-; Receives:					[ebp + 8]: , [ebp + 12]: , [ebp + 16]: 
+; Receives:					[ebp + 12]: , [ebp + 16]: 
 ; Returns:					
 ; Preconditions:			
 ; Register changed:	
 decrypt PROC
-	mov		edx, OFFSET decryptTest
-	call	WriteString
+	push	ebp
+	mov		ebp, esp
+	pushad
+	
+	mov		esi, [ebp + 12] ; original key
+	mov		edi, [ebp + 8] ; new key
 
-	ret
+	mov		bl, 97
+inverseKey:
+	xor		edx, edx
+	findCharIndex:
+		lodsb
+		cmp		al, bl
+		je		foundChar
+		inc		dl
+		jmp		findCharIndex
+
+	foundChar:
+		sub		esi, edx
+		dec		esi
+		add		dl, 97
+		mov		al, dl
+		stosb
+		inc		bl
+
+	cmp		bl, 123
+	jl		inverseKey
+
+
+	popad
+	pop		ebp
+	ret		8
 decrypt ENDP
 
 END main
