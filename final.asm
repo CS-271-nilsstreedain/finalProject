@@ -11,54 +11,13 @@ TITLE Final Project		(final.asm)
 ;							and Sila have decided to use a simple obfuscation algorithm that should be good enough to confuse
 ;							the RBG. As the TSA’s resident programmer you’ve been assigned to write a MASM procedure that will
 ;							implement the requested behavior. Your code must be capable of encrypting and decrypting messages.
+;
+; Extra Credit:				TA Name:	Megan
+;							Decoy:		Ensure that the "decoy" mode correctly returns the sum of ANY signed 16 bit numbers
 
 INCLUDE Irvine32.inc
-.data
-	operand1				WORD	46
-	operand2				WORD	-20
-	myKey					BYTE   "efbcdghijklmnopqrstuvwxyza"
-	message					BYTE   "the contents of this message will be a mystery.",0
-	dest					DWORD	0
-	dest1					DWORD   -1
-	dest2					DWORD   -2
 
 .code
-main PROC
-	; Decoy Mode Test
-	push	operand1
-	push	operand2
-	push	OFFSET dest
-	call	compute
-	;; currently dest holds a value of +26
-	mov		eax, dest
-	call	WriteInt
-	call	crlf
-	;; should display +26
-
-	; Encrypt Mode Test
-	push	OFFSET myKey
-	push	OFFSET message
-	push	OFFSET dest1
-	call	compute
-	;; message now contains the encrypted string
-	mov		edx, OFFSET message
-	call	WriteString
-	call	crlf
-	;; should display "uid bpoudout pg uijt ndttehd xjmm fd e nztudsz."
-
-	; Decrypt Mode Test
-	push	OFFSET myKey
-	push	OFFSET message
-	push	OFFSET dest2
-	call	compute
-	;; message now contains the decrypted string
-	mov		edx, OFFSET message
-	call	WriteString
-	call	crlf
-	;; should display "the contents of this message will be a mystery."
-	exit
-main ENDP
-
 ; Description:				Procedue to compute an output based various input modes.
 ;							1. A default "decoy" mode of operation where the procedure accepts two 16-bit operands by value and
 ;							one operand by OFFSET. The procedure will calculate the sum of the two operands and will store the
